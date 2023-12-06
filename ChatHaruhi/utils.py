@@ -220,24 +220,13 @@ def response_postprocess(text,dialogue_bra_token = '「',dialogue_ket_token = '�
     return first_name + ":" + dialogue_bra_token + new_lines + dialogue_ket_token
 
 def download_models():
+    print("正在下载Luotuo-Bert")
     # Import our models. The package will take care of downloading the models automatically
     model_args = Namespace(do_mlm=None, pooler_type="cls", temp=0.05, mlp_only_train=False,
                            init_embeddings_model=None)
-
-    model_online_path = "silk-road/luotuo-bert-medium"
-    model_edge_path = "models--silk-road--luotuo-bert-medium/snapshots/fd6a002f743013d4a58a5258eed8ae984ef4e203"
-    local_model_directory = os.path.join(os.path.expanduser("~"), ".cache/huggingface/hub", model_edge_path)
-
-    # Check if the model directory exists
-    if os.path.exists(local_model_directory):
-        print("Luotuo-Bert模型已经存在. 正在导入.")
-        model = AutoModel.from_pretrained(local_model_directory, trust_remote_code=True, model_args=model_args).to(device)
-    else:
-        print("正在下载Luotuo-Bert")
-        # Download the model
-        model = AutoModel.from_pretrained(model_oneline_path, trust_remote_code=True, model_args=model_args).to(device)
-        print("Luotuo-Bert下载完毕")
-
+    model = AutoModel.from_pretrained("silk-road/luotuo-bert-medium", trust_remote_code=True, model_args=model_args).to(
+        device)
+    print("Luotuo-Bert下载完毕")
     return model
 
 def get_luotuo_model():
