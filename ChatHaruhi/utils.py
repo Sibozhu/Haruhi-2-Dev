@@ -2,7 +2,8 @@ from argparse import Namespace
 
 from openai import OpenAI
 
-client = OpenAI(api_key="<enter your openai api key>")
+# client = OpenAI(api_key=<YOUR OPENAI API KEY>)
+
 from transformers import AutoModel, AutoTokenizer
 import torch
 import random
@@ -297,6 +298,9 @@ def get_embedding_for_chinese(model, texts):
 
 
 def is_chinese_or_english(text):
+    # no longer use online openai api
+    return "chinese"
+
     text = list(text)
     is_chinese, is_english = 0, 0
 
