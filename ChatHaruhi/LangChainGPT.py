@@ -44,7 +44,7 @@ from dotenv import load_dotenv
 
 class LangChainGPT(BaseLLM):
 
-    def __init__(self, model="gpt-3.5-turbo"):
+    def __init__(self, model="gpt-3.5-turbo-1106"):
         super(LangChainGPT, self).__init__()
         self.model = model
         if "OPENAI_API_BASE" in os.environ:
