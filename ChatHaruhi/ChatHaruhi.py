@@ -1,4 +1,4 @@
-from .ChromaDB import ChromaDB
+
 import os
 
 from .utils import luotuo_openai_embedding, tiktokenizer
@@ -14,6 +14,24 @@ def get_text_from_data( data ):
     else:
         print("warning! failed to get text from data ", data)
         return ""
+    
+def get_db_from_type( db_type ):
+    if db_type in ["chroma","Chroma","ChromaDB","chromadb"]:
+        from .ChromaDB import ChromaDB
+        ans = ChromaDB()
+        return ans
+    elif db_type in ["naive"]:
+        from .NaiveDB import NaiveDB
+        ans = NaiveDB()
+        return ans
+    else:
+        try:
+            from .ChromaDB import ChromaDB
+            ans = ChromaDB()
+        except:
+            ans = NaiveDB()
+        return ans
+
 
 class ChatHaruhi:
 
@@ -24,7 +42,8 @@ class ChatHaruhi:
                  llm = 'openai', \
                  embedding = 'luotuo_openai', \
                  max_len_story = None, max_len_history = None,
-                 verbose = False):
+                 verbose = False,
+                 db_type = None):
         super(ChatHaruhi, self).__init__()
         self.verbose = verbose
 
@@ -77,33 +96,47 @@ class ChatHaruhi:
         else:
             print(f'warning! undefined embedding {embedding}, use luotuo_openai instead.')
             self.embedding = luotuo_openai_embedding
+
+        self.db_type = db_type
         
         if role_name:
-            # TODO move into a function
-            from .role_name_to_file import get_folder_role_name
-            # correct role_name to folder_role_name
-            role_name, url = get_folder_role_name(role_name)
+            from .role_name_to_file import get_en_role_name
+            en_role_name = get_en_role_name( role_name )
 
-            unzip_folder = f'./temp_character_folder/temp_{role_name}'
-            db_folder = os.path.join(unzip_folder, f'content/{role_name}')
-            system_prompt = os.path.join(unzip_folder, f'content/system_prompt.txt')
-
-            if not os.path.exists(unzip_folder):
-                # not yet downloaded
-                # url = f'https://github.com/LC1332/Haruhi-2-Dev/raw/main/data/character_in_zip/{role_name}.zip'
-                import requests, zipfile, io
-                r = requests.get(url)
-                z = zipfile.ZipFile(io.BytesIO(r.content))
-                z.extractall(unzip_folder)
-
-            if self.verbose:
-                print(f'loading pre-defined character {role_name}...')
+            role_from_hf = "silk-road/ChatHaruhi-RolePlaying/" + en_role_name
             
-            self.db = ChromaDB()
-            self.db.load(db_folder)
-            self.system_prompt = self.check_system_prompt(system_prompt)
-        elif role_from_hf:
-            # TODO move into a function
+            # # TODO move into a function
+            # from .role_name_to_file import get_folder_role_name
+            # # correct role_name to folder_role_name
+            # role_name, url = get_folder_role_name(role_name)
+
+            # unzip_folder = f'./temp_character_folder/temp_{role_name}'
+            # db_folder = os.path.join(unzip_folder, f'content/{role_name}')
+            # system_prompt = os.path.join(unzip_folder, f'content/system_prompt.txt')
+
+            # if not os.path.exists(unzip_folder):
+            #     # not yet downloaded
+            #     # url = f'https://github.com/LC1332/Haruhi-2-Dev/raw/main/data/character_in_zip/{role_name}.zip'
+            #     import requests, zipfile, io
+            #     r = requests.get(url)
+            #     z = zipfile.ZipFile(io.BytesIO(r.content))
+            #     z.extractall(unzip_folder)
+
+            # if self.verbose:
+            #     print(f'loading pre-defined character {role_name}...')
+            # if self.db_type == None:
+            #     self.db_type = "chroma"
+            # elif not self.db_type in ["chroma","Chroma","ChromaDB","chromadb"]:
+            #     print("warning! directly load folder from dbtype ", self.db_type, " has not been implemented yet, change back to chroma, or try use role_from_hf to load role instead")
+            #     self.db_type = "chorma"
+            # self.db = get_db_from_type(self.db_type)
+            # self.db.load(db_folder)
+            # self.system_prompt = self.check_system_prompt(system_prompt)
+
+        if role_from_hf:
+            if self.db_type == None:
+                self.db_type = "naive"
+
             from datasets import load_dataset
 
             if role_from_hf.count("/") == 1:
@@ -134,6 +167,9 @@ class ChatHaruhi:
             self.build_story_db_from_vec( texts, vecs )
 
         elif role_from_jsonl:
+            if self.db_type == None:
+                self.db_type = "naive"
+
             import json
             datas = []
             with open( role_from_jsonl , encoding="utf-8") as f:
@@ -160,9 +196,16 @@ class ChatHaruhi:
             self.build_story_db_from_vec( texts, vecs )
             
         elif story_db:
-            self.db = ChromaDB() 
+            if self.db_type == None:
+                self.db_type = "chroma"
+            elif not self.db_type in ["chroma","Chroma","ChromaDB","chromadb"]:
+                print("warning! directly load folder from dbtype ", self.db_type, " has not been implemented yet, change back to chroma,or try use role_from_hf to load role instead")
+                self.db_type = "chorma"
+            self.db = get_db_from_type(self.db_type)
             self.db.load(story_db)
         elif story_text_folder:
+            if self.db_type == None:
+                self.db_type = "naive"
             # print("Building story database from texts...")
             self.db = self.build_story_db(story_text_folder) 
         else:
@@ -283,13 +326,13 @@ class ChatHaruhi:
             return (1500, 1200)
         
     def build_story_db_from_vec( self, texts, vecs ):
-        self.db = ChromaDB()
+        self.db = get_db_from_type(self.db_type)
 
         self.db.init_from_docs( vecs, texts)
 
     def build_story_db(self, text_folder):
         # 实现读取文本文件夹,抽取向量的逻辑
-        db = ChromaDB()
+        db = get_db_from_type(self.db_type)
 
         strs = []
 
@@ -348,6 +391,9 @@ class ChatHaruhi:
         query = self.get_query_string(text, role)
         self.add_story( query )
         self.last_query = query
+
+        # add history
+        self.add_history()
 
         # add query
         self.llm.user_message(query)
