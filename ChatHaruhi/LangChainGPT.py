@@ -42,7 +42,7 @@ import os
 
 class LangChainGPT(BaseLLM):
 
-    def __init__(self, model="gpt-3.5-turbo-1106"):
+    def __init__(self, model="gpt-3.5-turbo-0125"):
         super(LangChainGPT, self).__init__()
         self.model = model
         if "OPENAI_API_BASE" in os.environ:
