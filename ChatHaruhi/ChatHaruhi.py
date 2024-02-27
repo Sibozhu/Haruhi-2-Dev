@@ -83,6 +83,8 @@ class ChatHaruhi:
             self.llm, self.tokenizer = self.get_models('ernie3.5')
         elif llm == "ernie4.0":
             self.llm, self.tokenizer = self.get_models('ernie4.0')
+        elif llm == "moonshot":
+            self.llm, self.tokenizer = self.get_models('moonshot')
         elif llm == "foo" or llm == "Foo":
             self.llm, self.tokenizer = self.get_models('foo')
         elif "qwen" in llm:
@@ -292,6 +294,9 @@ class ChatHaruhi:
         elif model_name == 'ernie4.0':
             from .ErnieGPT import ErnieGPT
             return (ErnieGPT(model="ernie-bot-4"), tiktokenizer)
+        elif model_name == 'moonshot':
+            from .MoonshotAPI import MoonshotAPI
+            return (MoonshotAPI(model="moonshot-v1-8k"), tiktokenizer)
         elif model_name == "ChatGLM2GPT":
             from .ChatGLM2GPT import ChatGLM2GPT, GLM_tokenizer
             return (ChatGLM2GPT(), GLM_tokenizer)
