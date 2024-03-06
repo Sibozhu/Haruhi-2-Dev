@@ -266,13 +266,13 @@ class ChatHaruhi:
     
 
     def get_models(self, model_name):
-
         # TODO: if output only require tokenizer model, no need to initialize llm
         
         # return the combination of llm, embedding and tokenizer
         if model_name == 'openai':
-            from .LangChainGPT import LangChainGPT
-            return (LangChainGPT(), tiktokenizer)
+            # from .LangChainGPT import LangChainGPT
+            from .OpenAIAPI import OpenAIAPI
+            return (OpenAIAPI(), tiktokenizer)
         elif model_name == 'debug':
             from .PrintLLM import PrintLLM
             return (PrintLLM(), tiktokenizer)
@@ -329,13 +329,15 @@ class ChatHaruhi:
                 return (Qwen118k2GPT(model = "silk-road/" + model_name), Qwen_tokenizer)
             else:
                 print(f'warning! undefined model {model_name}, use openai instead.')
-                from .LangChainGPT import LangChainGPT
-                return (LangChainGPT(), tiktokenizer) 
+                # from .LangChainGPT import LangChainGPT
+                from .OpenAIAPI import OpenAIAPI
+                return (OpenAIAPI(), tiktokenizer) 
             # print(models_id)
         else:
             print(f'warning! undefined model {model_name}, use openai instead.')
-            from .LangChainGPT import LangChainGPT
-            return (LangChainGPT(), tiktokenizer)
+            # from .LangChainGPT import LangChainGPT
+            from .OpenAIAPI import OpenAIAPI
+            return (OpenAIAPI(), tiktokenizer)
         
     def get_tokenlen_setting( self, model_name ):
         # return the setting of story and history token length
