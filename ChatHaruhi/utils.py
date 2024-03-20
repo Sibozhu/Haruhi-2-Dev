@@ -387,11 +387,11 @@ def is_chinese_or_english(text):
         return "english"
 
 
-def get_embedding_openai(text, model="text-embedding-ada-002"):
+def get_embedding_openai(text, model="text-embedding-3-small"):
     text = text.replace("\n", " ")
     return client.embeddings.create(input = [text], model=model).data[0].embedding
 
-def get_embedding_for_english(text, model="text-embedding-ada-002"):
+def get_embedding_for_english(text, model="text-embedding-3-small"):
     text = text.replace("\n", " ")
     return client.embeddings.create(input = [text], model=model).data[0].embedding
 
